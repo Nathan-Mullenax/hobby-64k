@@ -1,0 +1,7 @@
+	mnem push_n(1)	short	;
+     	mnem add(2)    	regs	;
+start:
+	push_n 1024		;
+	push_n 1025		;
+	add stack:0, stack:1	;
+
