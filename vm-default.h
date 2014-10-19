@@ -252,15 +252,16 @@ void LAMBDA( vm &machine, vm::instruction instr )
       // save IP address plus 1 ('next line')
       machine.stack[machine.SP()] = machine.IP()+1;
       --machine.SP();
-      for(int i=start; i<start+len; ++i)
+
+      machine.IP() = start; // jump to function
+
+      // function is 'running' as long as the line number
+      // is within the function body.
+      while( machine.IP() >= start && machine.IP() < start+len )
 	{
-	  machine *= vm::to_instruction(machine.program[i]);
-	}
-      // go back to the line after the abstraction was invoked
-      // or to an alternate location if the sequence has modified 
-      // the saved IP on the stack.
-      machine.IP() = machine.stack[machine.SP()+1];
-      ++machine.SP(); // pop
+	  machine *= vm::to_instruction(machine.program[machine.IP()]);
+	}      
+      
     };
   vm::extension x;
   x.instr = machine.extensions.size();
