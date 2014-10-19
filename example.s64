@@ -1,7 +1,20 @@
-	mnem push_n(1)	short	;
-     	mnem add(2)    	regs	;
-start:
-	push_n 1024		;
-	push_n 1025		;
-	add stack:0, stack:1	;
+push-l 3;
+return;
 
+ouch2 'xx';
+
+ouch2 '--';
+
+mnem count-4() noargs;
+    lambda-l 3;
+    ouch2 '01';
+    ouch2 '23';
+    return; 
+
+
+count-4;
+
+
+
+
+halt;

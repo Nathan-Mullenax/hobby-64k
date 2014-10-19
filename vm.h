@@ -4,6 +4,7 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <stdexcept>
 #include <functional>
 
@@ -123,6 +124,7 @@ class vm
   
   vm()
     {
+      IP() = VM_SIZE-1;
     }
 
   void
@@ -131,17 +133,18 @@ class vm
     std::ofstream fs(name, std::ios::binary);
     for(int i=0; i<VM_SIZE; ++i)
       {
-	int sw(stack[i]);
-	int pw(program[i]);
-	fs.put( static_cast<char>( (sw >> 24) & 0xF ) );
-	fs.put( static_cast<char>( (sw >> 16) & 0xF ) );
-	fs.put( static_cast<char>( (sw >> 8) & 0xF ) );
-	fs.put( static_cast<char>( (sw) & 0xF ) );		
+	char *s = reinterpret_cast<char*>(&stack[i]);
+	char *p = reinterpret_cast<char*>(&program[i]);
 
-	fs.put( static_cast<char>( (pw >> 24) & 0xF ) );
-	fs.put( static_cast<char>( (pw >> 16) & 0xF ) );
-	fs.put( static_cast<char>( (pw >> 8) & 0xF ) );
-	fs.put( static_cast<char>( (pw) & 0xF ) );		
+	fs.put( *(s+0) );
+	fs.put( *(s+1) );
+	fs.put( *(s+2) );
+	fs.put( *(s+3) );		
+
+	fs.put( *(p+0) );
+	fs.put( *(p+1) );
+	fs.put( *(p+2) );
+	fs.put( *(p+3) );		
       }
     fs.flush();
     fs.close();
@@ -153,18 +156,19 @@ class vm
     std::ifstream fs(name, std::ios::binary);
     for(int i=0; i<VM_SIZE; ++i)
       {
-	char s0 = static_cast<char>(fs.get());
-	char s1 = static_cast<char>(fs.get());
-	char s2 = static_cast<char>(fs.get());
-	char s3 = static_cast<char>(fs.get());
+	char *s = reinterpret_cast<char*>(&stack[i]);
+	char *p = reinterpret_cast<char*>(&program[i]);
 	
-	char p0 = static_cast<char>(fs.get());
-	char p1 = static_cast<char>(fs.get());
-	char p2 = static_cast<char>(fs.get());
-	char p3 = static_cast<char>(fs.get());
-
-	stack[i] = (s0<<24) | (s1<<16) | (s2 << 8) | s3;
-	program[i] = (p0<<24) | (p1<<16) | (p2 << 8) | p3;
+	*(s+0) = fs.get();
+	*(s+1) = fs.get();
+	*(s+2) = fs.get();
+	*(s+3) = fs.get();
+	*(p+0) = fs.get();
+	*(p+1) = fs.get();
+	*(p+2) = fs.get();
+	*(p+3) = fs.get();
+      
+	//	std::cout << "Program[" << i << "]=" << program[i] << "\n";
       }
     fs.close();
   }
@@ -238,6 +242,13 @@ class vm
   {
     std::cout << "\nIP=" << IP() << "\tSP=" << SP() << "\tW=" << W() << "\tZF=" << ZF() <<
       "\tHALTED=" << HALTED() << "\n";
+  }
+
+  void 
+    dump_debug()
+  {
+    std::cout << "SP=" << SP() << "\tIP=" << IP() << "\t"
+	      << "W=" << W() << "\n";
   }
 
   // an instruction with no argument
@@ -336,16 +347,20 @@ class vm
 vm &
 operator *= (vm &machine, vm::instruction ins )
 {
-  if( machine.is_op( ins.instr ) )
+  if( !machine.HALTED() )
     {
-      //      machine.program[machine.IP()%8*1024] = vm::int32(ins);
-      machine.extensions[ins.instr].fun( machine, ins );
+      if( machine.is_op( ins.instr ) )
+	{
+	  //      machine.program[machine.IP()%8*1024] = vm::int32(ins);
+	  machine.extensions[ins.instr].fun( machine, ins );
+	}
+      else
+	{
+	  std::stringstream s;
+	  s << machine.W() << ": " << "(" << ins.instr << ")" << " not a valid instruction.";
+	  throw runtime_error(s.str());
+	}
     }
-  else
-    {
-      // std::cout << "NOP\n";
-    }
-
   return machine;
   
 }
@@ -374,5 +389,7 @@ operator << (vm &machine, vm::instruction ins )
   machine.W() = (machine.W()+1) % (8*1024);
   return machine;
 }
+
+
 
 #endif

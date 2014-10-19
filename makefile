@@ -1,13 +1,16 @@
-all:	vm assembler compiler
+all:	h64k-vm h64k-as h64k-c example.b64
 
-vm:	vm.cpp vm.h
-	g++ -std=c++11 -Wall ./vm.cpp -O -ovm
+h64k-vm:	vm.cpp vm.h vm-default.h
+	g++ -std=c++11 -Wall ./vm.cpp -O -oh64k-vm
 
-assembler:	assembler.cpp assembler.h vm.h lexer.h
-	g++ -std=c++11 -Wall ./assembler.cpp -O -oassembler
+h64k-as:	assembler.cpp assembler.h vm.h lexer.h vm-default.h
+	g++ -std=c++11 -Wall ./assembler.cpp -O -oh64k-as
 
-compiler:	compiler.cpp
-	g++ -std=c++11 -Wall ./compiler.cpp -O -ocompiler
+h64k-c:	compiler.cpp
+	g++ -std=c++11 -Wall ./compiler.cpp -O -oh64k-c
+
+example.b64: example.s64
+	./h64k-as ./example.s64
 
 clean:
-	rm ./vm ./assembler ./compiler
+	rm ./h64k-vm ./h64k-as ./h64k-c ./*.b64

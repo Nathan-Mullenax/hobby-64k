@@ -96,31 +96,18 @@ void JE( vm &machine, vm::instruction instr )
 
 void STEP( vm &machine, vm::instruction instr )
 {
-  int assembly = machine.program[ machine.IP()%(8*1024)];
-  
-  vm::instruction fetched;
-  fetched.instr = (assembly >> 16);
-  
-  vm::conversion c;
-  c.s_arg = (assembly & 0xFFFF );
-  fetched.src = c.i_args.src;
-  fetched.src_mod = c.i_args.src_mod;
-  fetched.dst = c.i_args.dst;
-  fetched.dst_mod = c.i_args.dst_mod;
-  if( fetched.instr == instr.instr )
-    {
-      ++machine.IP();
-    }
-  else
-    {
+  if( machine.HALTED()==0 )
+    { 
+      vm::instruction fetched(vm::to_instruction(machine.program[machine.IP()%VM_SIZE]));
+      //      std::cout << "Code = " << fetched.instr << "\n";
       machine *= fetched;
+      //      machine.dump_regs();
     }
 }
 
 void HALT( vm &machine, vm::instruction instr )
 {
   machine.HALTED()=1;
-  machine.IP()++;
 }
 
 void RUN( vm &machine, vm::instruction instr )
@@ -242,13 +229,20 @@ void PRINT_ADDRESS_DEC( vm &machine, vm::instruction instr )
 
 // create a new instruction takes one argument (length),
 // which is the number of instructions that follow.
+// create a new instruction takes one argument (length),
+// which is the number of instructions that follow.
 void LAMBDA( vm &machine, vm::instruction instr )
 {
+  //std::cout << "Lambda defined.\n";
   vm::conversion c(vm::convert(instr));
   int len = c.s_arg;
   int start = machine.IP()+1;
+  //  std::cout << "start=" << start << "\n";
+  //std::cout << "len=" << len << "\n";
+  
   auto fun = [len,start]( vm &machine, vm::instruction instr )
     {
+      //  std::cout << "Lambda called.\n";
       // save IP address plus 1 ('next line')
       machine.stack[machine.SP()] = machine.IP()+1;
       --machine.SP();
@@ -257,7 +251,7 @@ void LAMBDA( vm &machine, vm::instruction instr )
 
       // function is 'running' as long as the line number
       // is within the function body.
-      while( machine.IP() >= start && machine.IP() < start+len )
+      while( (machine.IP() >= start) && (machine.IP() < start+len) )
 	{
 	  machine *= vm::to_instruction(machine.program[machine.IP()]);
 	}      
@@ -267,7 +261,8 @@ void LAMBDA( vm &machine, vm::instruction instr )
   x.instr = machine.extensions.size();
   x.fun = fun;
   machine += x;
-  machine.IP() += len+1;
+  // jump past function definition
+  machine.IP() = start + len;
 }
 
 
@@ -286,6 +281,13 @@ void OR( vm &machine, vm::instruction instr )
   machine.lookup( c.i_args.dst, c.i_args.dst_mod )
     |= machine.lookup( c.i_args.src, c.i_args.src_mod );
   ++machine.IP();
+}
+
+// pops IP off of the stack and jumps to it.
+void RETURN_NOTHING( vm &machine, vm::instruction instr )
+{
+  machine.IP() = machine.stack[machine.SP()+1];
+  ++machine.SP();
 }
 
 vm
@@ -319,7 +321,10 @@ create_default_vm( stringstream &s )
   machine += LAMBDA;            s << "mnem lambda-l(24)     short;" "\n";
   machine += AND;               s << "mnem and-r(25)         regs;" "\n";
   machine += OR;                s << "mnem or-r(26)          regs;" "\n";
-  
+  machine += RETURN_NOTHING;    s << "mnem return(27)      noargs;" "\n";
+
+ 
+
   return machine;
 }
 

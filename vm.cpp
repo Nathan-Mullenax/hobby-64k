@@ -8,12 +8,35 @@ using std::stringstream;
 
 // example
 
-int main()
+int main(int argc, char **argv)
 {
   stringstream preamble;
   vm machine(create_default_vm(preamble));
-  std::cout << preamble.str();
+  machine *= vm::assemble(0); // reset.
+  if( argc<2 )
+    {
+      // describe the virtual machine
+      std::cout << preamble.str();
+    }
+  else
+    {
+      try
+	{
+	  // deserialize binary image and run it
+	  machine.deserialize(argv[1]);
+	  machine *= vm::assemble(12); // RUN
+	 
+	}
+      catch( runtime_error e )
+	{
+	  std::cout << std::endl;
+	  std::cout << e.what() << "\n";
+	}
+    }
+  
 
+
+  
 
   // RESET the machine
   /*

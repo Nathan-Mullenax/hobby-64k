@@ -30,6 +30,8 @@ private:
   map< string,int > line_labels;
   map< string,int > var_labels;
   map< string,int > codes;
+
+  int mnem_count;
   
   typedef struct
   {
@@ -120,7 +122,7 @@ private:
   }
 
   // Mnem ::= "mnem" kw(CODE) FORM0, FORM1, FORM2 ;
-  void parse_mnem( std::istream &s )
+  void parse_mnem( vm &machine, std::istream &s )
   {
     vector<form_type> fs;
     string name;
@@ -129,17 +131,28 @@ private:
     expect( lex.next_token(s), "mnem" );
     name = expect( lex.next_token(s), ID );
     expect( lex.next_token(s), "(" );
-    code = intify( expect( lex.next_token(s), INTEGER ) );
-    expect( lex.next_token(s), ")" );
+    
+    token cp_p( lex.next_token(s) );
+    if(cp_p.content==")")
+      {
+	code = machine.extensions.size() + mnem_count;
+	++mnem_count;
+      }
+    else
+      {
+	code = intify( expect(cp_p, INTEGER ) );
+	expect( lex.next_token(s), ")" );
+      }
+    
     
     //    fs = list_of<form_type>( typify,s );
-
     
+   
     mnemonics[name] = typify( lex.next_token(s) );
     expect( lex.next_token(s), ";" );
     codes[ name ] = code;
 
-    // std::cout << name << " is now defined.\n";
+    //    std::cout << name << " is now defined.\n";
   }
 
   // we can do reg:n, [reg:n], stack:n, [stack:n]
@@ -306,7 +319,9 @@ private:
 
 public:
   assembler()
-  {}
+  {
+    mnem_count = 0;
+  }
 
   form_type 
   classify( istream &s )
@@ -327,7 +342,10 @@ public:
     else if( t0.type == ID )
       {
 	if( mnemonics.count(t0.content)==0 )
-	  throw runtime_error("Undefined instruction.");
+	  {
+	    std::cout << "\"" << t0.content << "\"\n";
+	    throw runtime_error("Undefined instruction.");
+	  }
 	else
 	  return mnemonics[t0.content];
 	
@@ -352,7 +370,7 @@ public:
 	switch( classify(s) )
 	  {
 	  case MNEM:
-	    parse_mnem( s );
+	    parse_mnem( machine, s );
 	    break;
 	  case LABEL:
 	    parse_label( machine, s );
@@ -387,6 +405,8 @@ int
 main(int argc, char **argv )
 {
   assembler basic_asm;
+  
+
   try
     {
       stringstream ss;
@@ -395,7 +415,19 @@ main(int argc, char **argv )
       // load default mnemonics
       basic_asm.assemble(machine, ss );
       // read and assemble source
-      basic_asm.assemble(machine, std::cin);
+
+      if( argc > 1 )
+	{
+	  std::ifstream fin(argv[1], std::ios::binary);
+	  basic_asm.assemble(machine, fin);
+	  machine.IP() = 0;
+	  machine.SP() = VM_SIZE-1;
+	  machine.serialize(std::string(argv[1])+".b64");
+	}
+      else
+	{
+	  basic_asm.assemble(machine, std::cin);
+	}
 
       machine.serialize("a.b64");
     }
