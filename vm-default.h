@@ -16,6 +16,7 @@ void RESET ( vm &machine, vm::instruction instr )
   machine.SP() = VM_SIZE-1;
   machine.IP() = 0;
   machine.W() = 0;
+  machine.X() = 1;
   machine.ZF() = 0;
   
 }
@@ -94,14 +95,23 @@ void JE( vm &machine, vm::instruction instr )
   machine.ZF() = 0;
 }
 
+// an x-address can refer to any address, including
+// those in the code segment, on the stack, in registers.
+void JX( vm &machine, vm::instruction instr )
+{
+  vm::conversion c(vm::convert(instr));
+  machine.X() = ((c.x_args.a_mod & mod_code) > 0)?1:0;
+  machine.IP() = c.x_args.a_loc;
+}
+
 void STEP( vm &machine, vm::instruction instr )
 {
   if( machine.HALTED()==0 )
     { 
-      vm::instruction fetched(vm::to_instruction(machine.program[machine.IP()%VM_SIZE]));
-      //      std::cout << "Code = " << fetched.instr << "\n";
-      machine *= fetched;
-      //      machine.dump_regs();
+      if( machine.X()==1 )
+	machine *= vm::to_instruction(machine.program[machine.IP()%VM_SIZE]);
+      else
+	machine *= vm::to_instruction(machine.stack[machine.IP()%VM_SIZE]);
     }
 }
 
@@ -290,6 +300,8 @@ void RETURN_NOTHING( vm &machine, vm::instruction instr )
   ++machine.SP();
 }
 
+
+
 vm
 create_default_vm( stringstream &s )
 {
@@ -303,7 +315,7 @@ create_default_vm( stringstream &s )
   machine += SUB;               s << "mnem sub-r(6)          regs;" "\n";
   machine += TIMES;             s << "mnem mul-r(7)          regs;" "\n";
   machine += CMP;               s << "mnem cmp-r(8)          regs;" "\n";
-  machine += JE;                s << "mnem je(9)           noargs;" "\n";
+  machine += JE;                s << "mnem j-e(9)          noargs;" "\n";
   machine += STEP;              s << "mnem step(10)        noargs;" "\n";
   machine += HALT;              s << "mnem halt(11)        noargs;" "\n";
   machine += RUN;               s << "mnem run(12)         noargs;" "\n";
@@ -322,6 +334,7 @@ create_default_vm( stringstream &s )
   machine += AND;               s << "mnem and-r(25)         regs;" "\n";
   machine += OR;                s << "mnem or-r(26)          regs;" "\n";
   machine += RETURN_NOTHING;    s << "mnem return(27)      noargs;" "\n";
+  machine += JX;                s << "mnem j-x(28)          xaddr;" "\n";
 
  
 

@@ -6,15 +6,23 @@ ouch2 'xx';
 ouch2 '--';
 
 mnem count-4() noargs;
-    lambda-l 3;
-    ouch2 '01';
-    ouch2 '23';
-    return; 
+     lambda-l 3;
+     ouch2 '01';
+     ouch2 '23';
+     return; 
 
+mnem hello-world() noargs;
+     lambda-l 7;
+hiw: ouch2 'He';
+     ouch2 'll';
+     ouch2 'o,';
+     ouch2 ' w';
+     ouch2 'or';
+     ouch2 'ld';
+     return;
 
 count-4;
-
-
+hello-world;
 
 
 halt;

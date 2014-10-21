@@ -125,6 +125,7 @@ class vm
   vm()
     {
       IP() = VM_SIZE-1;
+      X() = 1;
     }
 
   void
@@ -211,7 +212,7 @@ class vm
   
   
   // general purpose registers
-  int & A() { return stack[5];  }
+  int & A() { return stack[5];  } 
   int & B() { return stack[6];  }
   int & C() { return stack[7];  }
   int & D() { return stack[8];  }
@@ -228,12 +229,15 @@ class vm
   int & P() { return stack[19]; }
   int & Q() { return stack[20]; }
   int & R() { return stack[21]; }
-  int & S() { return stack[22]; }
+  int & S() { return stack[22]; } 
   int & T() { return stack[23]; }
   int & U() { return stack[24]; }
   int & V() { return stack[25]; }
   // there is no general-purpose W
-  int & X() { return stack[26]; }
+  
+  // X chooses segment or eXecution
+  // segment 0 = stack, 1 = program
+  int & X() { return stack[26]; } // segment 0 = stack, 1 = program
   int & Y() { return stack[27]; }
   int & Z() { return stack[28]; }
   
@@ -241,7 +245,7 @@ class vm
     dump_regs()
   {
     std::cout << "\nIP=" << IP() << "\tSP=" << SP() << "\tW=" << W() << "\tZF=" << ZF() <<
-      "\tHALTED=" << HALTED() << "\n";
+      "\tHALTED=" << HALTED() << " X=" << X() << "\n";
   }
 
   void 

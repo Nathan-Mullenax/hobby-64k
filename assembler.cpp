@@ -23,23 +23,35 @@ using std::function;
 class assembler
 {
 private:
-  typedef enum { MNEM, XADDR, REGS, SCALAR, CHARS, LABEL, SHORT, NOARGS, CTRLD } form_type;
+  // these are types of statements that are legal
+  // in an assembly file.
+  typedef enum 
+    {
+      MNEM, DW, DS, XADDR, REGS, SCALAR, 
+      CHARS, LABEL, SHORT, NOARGS, CTRLD 
+    } form_type;
 
-
+  // maps instruction name to grammatical form.
   map< string,form_type> mnemonics;
+
+  // as labels are encountered, there are given
+  // line numbers.
   map< string,int > line_labels;
-  map< string,int > var_labels;
+
+  // as mnemonics are defined, their corresponding
+  // codes are stored in this table.
   map< string,int > codes;
 
+  
   int mnem_count;
   
-  typedef struct
-  {
-    int lineno;
-    string line; // you'll need to reparse it after 
-  } dependency;
+  // transformations that should happen to
+  // a machine once a line label is defined.
+  // So, this functor template will capture
+  // W 
+  typedef function< void(vm &, string, int) > dep_fn;
+  map<string,vector<dep_fn> > deps;
 
-  
 
   lexer lex;
   
@@ -225,12 +237,33 @@ private:
     machine << code;
   }
 
+  void define_label( vm &machine, string name, int value )
+  {
+    // for future reference:
+    line_labels[name] = machine.W();
+
+    // for past references:
+    // list of functions that are waiting for 'name'
+    auto fns = deps[name];
+    
+    
+    for(unsigned i=0; i<fns.size(); ++i)
+      {
+	// invoke each one, in hopes that it knows
+	// how to patch the machine.
+	fns[i](machine,name,value);
+      }
+    
+    // these dependencies have been satisfied,
+    // delete them.
+    deps[name] = vector<dep_fn>();
+  }
+
   void parse_label( vm &machine, istream &s )
   {
     token name = lex.next_token(s);
     expect( lex.next_token(s), ":" );
-    std::cout << "Label " << name.content << " is now defined.\n";
-    line_labels[name.content] = machine.W();
+    define_label( machine, name.content, machine.W() );
   }
 
   void parse_short( vm &machine, istream &s )
@@ -373,7 +406,10 @@ public:
 	    parse_mnem( machine, s );
 	    break;
 	  case LABEL:
-	    parse_label( machine, s );
+	    {
+	      parse_label( machine, s);
+	      
+	    }
 	    break;
 	  case REGS:
 	    parse_regs( machine, s );
@@ -401,6 +437,27 @@ public:
   }
 };
 
+int 
+last_dot( string &s )
+{
+  int i(s.size()-1);
+  while(s[i]!='.')
+    {
+      --i;
+      if( i==0 ) return s.size()-1;
+    }
+  return i;
+}
+
+string 
+out_file_name( string fn )
+{
+  
+  string o;
+  return fn.substr(0, last_dot(fn)) + ".b64";
+  
+}
+
 int
 main(int argc, char **argv )
 {
@@ -422,7 +479,7 @@ main(int argc, char **argv )
 	  basic_asm.assemble(machine, fin);
 	  machine.IP() = 0;
 	  machine.SP() = VM_SIZE-1;
-	  machine.serialize(std::string(argv[1])+".b64");
+	  machine.serialize(out_file_name(argv[1]));
 	}
       else
 	{
