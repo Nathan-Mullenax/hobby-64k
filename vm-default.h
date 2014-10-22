@@ -239,8 +239,6 @@ void PRINT_ADDRESS_DEC( vm &machine, vm::instruction instr )
 
 // create a new instruction takes one argument (length),
 // which is the number of instructions that follow.
-// create a new instruction takes one argument (length),
-// which is the number of instructions that follow.
 void LAMBDA( vm &machine, vm::instruction instr )
 {
   //std::cout << "Lambda defined.\n";
