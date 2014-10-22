@@ -1,20 +1,6 @@
-Added readme.
+What is it?
 
-# Please enter the commit message for your changes. Lines starting
-# with '#' will be ignored, and an empty message aborts the commit.
-# On branch master
-# Changes to be committed:
-#   (use "git reset HEAD <file>..." to unstage)
-#
-#	modified:   README
-#	modified:   vm-default.h
-#
-# Untracked files:
-#   (use "git add <file>..." to include in what will be committed)
-#
-#	.b64
-#	a.b64
-#	example.b64
-#	h64k-as
-#	h64k-c
-#	h64k-vm
+It's an extensible virtual machine, assembler, and (eventually) a compiler. The idea is to create a semantically dense instruction set to allow non-trivial programs to be squeezed into the 64k format. Toward this end, up to 2^16 user instructions can be defined, and each of these instructions is 4 bytes long: 2 bytes to identify the command, and 2 bytes for the argument. New instructions can be defined at compile-time or at run-time, using the 'lambda' instruction.
+
+
+
