@@ -212,7 +212,7 @@ class vm
   
   
   // general purpose registers
-  int & A() { return stack[5];  } 
+  int & A() { return stack[5];  } // low 16 = argument
   int & B() { return stack[6];  }
   int & C() { return stack[7];  }
   int & D() { return stack[8];  }
@@ -313,6 +313,23 @@ class vm
     ins.dst = c.i_args.dst;
     return ins;
   }
+
+  // instruction with scalar
+  static instruction
+    assemble_scalar( unsigned short code, unsigned char mod, unsigned short ind, unsigned int len )
+    {
+      instruction ins;
+      ins.instr = code;
+      conversion c;
+      c.s_args.a_mod = mod;
+      c.s_args.a_loc = ind;
+      c.s_args.len = len;
+      ins.dst_mod = c.i_args.dst_mod;
+      ins.src_mod = c.i_args.src_mod;
+      ins.src = c.i_args.src;
+      ins.dst = c.i_args.dst;
+      return ins;
+    }
 
   static instruction
     dw( unsigned char c0, unsigned char c1, unsigned char c2, unsigned char c3 )

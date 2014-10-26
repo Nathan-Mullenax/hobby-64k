@@ -2,6 +2,7 @@
 #define VM_DEFAULT_H
 
 #include <sstream>
+#include <ncurses.h>
 #include "vm.h"
 
 using std::stringstream;
@@ -253,7 +254,11 @@ void LAMBDA( vm &machine, vm::instruction instr )
       //  std::cout << "Lambda called.\n";
       // save IP address plus 1 ('next line')
       machine.stack[machine.SP()] = machine.IP()+1;
+      
       --machine.SP();
+      
+      // argument to instruction (and instruction code) passed via register A
+      machine.A() = vm::int32( instr );
 
       machine.IP() = start; // jump to function
 
@@ -273,6 +278,22 @@ void LAMBDA( vm &machine, vm::instruction instr )
   machine.IP() = start + len;
 }
 
+
+void LSH( vm &machine, vm::instruction instr )
+{
+  vm::conversion c(vm::convert(instr));
+  machine.lookup( c.s_args.a_loc, c.s_args.a_mod )
+    <<= c.s_args.len;
+  ++machine.IP();
+}
+
+void RSH( vm &machine, vm::instruction instr )
+{
+  vm::conversion c(vm::convert(instr));
+  machine.lookup( c.s_args.a_loc, c.s_args.a_mod )
+    >>= c.s_args.len;
+  ++machine.IP();
+} 
 
 
 void AND( vm &machine, vm::instruction instr )
@@ -295,7 +316,49 @@ void OR( vm &machine, vm::instruction instr )
 void RETURN_NOTHING( vm &machine, vm::instruction instr )
 {
   machine.IP() = machine.stack[machine.SP()+1];
-  ++machine.SP();
+  ++machine.SP(); 
+}
+
+// curses IO
+
+void CURSES_INITSCR( vm &machine, vm::instruction instr )
+{
+  initscr();
+}
+
+void CURSES_CBREAK( vm &machine, vm::instruction instr )
+{
+  cbreak();
+}
+
+void CURSES_NOECHO( vm &machine, vm::instruction instr )
+{
+  noecho();
+}
+
+void CURSES_KEYPAD( vm &machine, vm::instruction instr )
+{
+  keypad( stdscr, TRUE );
+}
+
+void CURSES_ENDWIN( vm &machine, vm::instruction instr )
+{
+  endwin();
+}
+
+void CURSES_GETCH( vm &machine, vm::instruction instr )
+{
+  machine.stack[ machine.SP() ] = getch();
+  --machine.SP();
+}
+
+void CURSES_WAITCH( vm &machine, vm::instruction instr )
+{
+  int c;
+  while( (c=getch())==ERR )
+    ;
+  machine.stack[ machine.SP() ] = c;
+  --machine.SP();
 }
 
 
@@ -333,9 +396,19 @@ create_default_vm( stringstream &s )
   machine += OR;                s << "mnem or-r(26)          regs;" "\n";
   machine += RETURN_NOTHING;    s << "mnem return(27)      noargs;" "\n";
   machine += JX;                s << "mnem j-x(28)          xaddr;" "\n";
+  machine += RSH;               s << "mnem rsh(29)         scalar;" "\n";
+  machine += LSH;               s << "mnem lsh(30)         scalar;" "\n";
 
- 
-
+  machine += CURSES_INITSCR;    s << "mnem curses-initscr(31)  noargs;" "\n";
+  machine += CURSES_CBREAK;     s << "mnem curses-cbreak(32)   noargs;" "\n";
+  machine += CURSES_NOECHO;     s << "mnem curses-nocho(33)    noargs;" "\n";
+  machine += CURSES_KEYPAD;     s << "mnem curses-keypad(34)   noargs;" "\n";
+  machine += CURSES_ENDWIN;     s << "mnem curses-endwin(35)   noargs;" "\n";
+  machine += CURSES_GETCH;      s << "mnem curses-getch(36)    noargs;" "\n";
+  machine += CURSES_WAITCH;     s << "mnem curses-waitch(37)   noargs;" "\n";
+  
+  
+  
   return machine;
 }
 

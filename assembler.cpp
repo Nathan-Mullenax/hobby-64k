@@ -102,7 +102,19 @@ private:
     throw runtime_error(ss.str());
   }
 
-  
+  unsigned char  
+  parse_mod( istream &s )
+  {
+    token mod = lex.peek(s,0);
+    char segno = 0;
+    if( mod.content=="code" ) segno=mod_code;
+    else if( mod.content=="stack" ) segno=mod_sv;
+    else if( mod.content=="reg" ) segno=mod_rv;
+    else
+      throw runtime_error( "Invalid addressing mode" );
+    lex.next_token(s);
+    return segno;
+  }  
 
   int
   intify( string n )
@@ -175,6 +187,8 @@ private:
     token t2 = lex.peek(s,3);
     if( t0.type == ID )
       {
+
+      
 	if( t0.content=="reg" )
 	  {
 	    lex.next_token(s); // "reg"
@@ -191,6 +205,7 @@ private:
 	    ind = intify( expect( lex.next_token(s), INTEGER ) );
 	    return;
 	  }
+       
       }
     else if( t0.content == "[" )
       {
@@ -275,19 +290,7 @@ private:
     
   }
 
-  unsigned char  
-  parse_mod( istream &s )
-  {
-    token mod = lex.peek(s,0);
-    char segno = 0;
-    if( mod.content=="code" ) segno=mod_code;
-    else if( mod.content=="stack" ) segno=mod_sv;
-    else if( mod.content=="reg" ) segno=mod_rv;
-    else
-      throw runtime_error( "Invalid addressing mode" );
-    lex.next_token(s);
-    return segno;
-  }
+
 
   void 
   parse_xaddr( vm &machine, istream &s )
@@ -341,6 +344,58 @@ private:
     expect( lex.next_token(s), ";" );
     machine << vm::assemble( codes[name.content], c0, c1 );
   }
+  
+  // parse something parenthesized.
+  
+
+
+  // ('[') xsegment : address (']'), n
+  void
+  parse_scalar( vm &machine, istream &s )
+  {
+    token name = lex.next_token(s);
+    
+    token t0 = lex.peek(s,0);
+    token t1 = lex.peek(s,1);
+    token t2 = lex.peek(s,2);
+
+    bool address = false;
+    char mod = 0;
+    int addr = 0;
+    int len = 0;
+    
+
+    if( t0.content=="[" )
+      {
+	address = true;
+	lex.next_token(s); // consume open bracket
+      }
+    mod = parse_mod(s);
+    
+    while( lex.peek(s,0).content=="+" )
+      {
+	mod += parse_mod(s);
+      }
+    
+
+    expect( lex.next_token(s), ":" );
+
+    addr = intify(expect(lex.next_token(s),INTEGER));
+
+    if( address )
+      {						
+	mod |= 1;
+	expect( lex.next_token(s), "]");
+      }
+
+    expect( lex.next_token(s), "," );
+    
+    len = intify( expect( lex.next_token(s), INTEGER ) );
+    expect( lex.next_token(s), ";" );
+    
+    machine << vm::assemble_scalar( codes[name.content], mod, addr, len );
+    
+  }
 
   void
   parse_noargs( vm &machine, istream &s )
@@ -387,7 +442,14 @@ public:
       {
 	return CTRLD;
       }
-    throw runtime_error("Could not classify your statement.");
+    else
+      {
+	std::stringstream er;
+	er << error_prefix(t0) << "Could not classify your statement.";
+	throw runtime_error(er.str());
+      }
+    
+  
   }
 
   
@@ -428,6 +490,9 @@ public:
 	    break;
 	  case NOARGS:
 	    parse_noargs( machine, s );
+	    break;
+	  case SCALAR:
+	    parse_scalar( machine, s );
 	    break;
 	  default:
 	    throw runtime_error("I didn't get that.");

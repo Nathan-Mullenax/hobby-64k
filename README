@@ -4,3 +4,17 @@ It's an extensible virtual machine, assembler, and (eventually) a compiler. The 
 
 
 
+Oct 25, 2014
+------------
+How will 'mnem' pass the arguments of a user-defined assembly routine?
+
+The argument will in a special register. A special set of functions will facilitate extracting fields from the argument.
+
+The instruction definition might specify an interpretation:
+
+x-address    // it's a univeral address (either segment)
+regs         // it's two 'near' addresses
+scalar       // it's an address and length
+short        // it's an integer
+chars        // it's two characters.
+

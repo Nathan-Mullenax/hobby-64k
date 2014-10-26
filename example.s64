@@ -24,5 +24,10 @@ hiw: ouch2 'He';
 count-4;
 hello-world;
 
+push-l 11;
+pop-a 100;
+
+print-a-d reg:100;
+
 
 halt;
