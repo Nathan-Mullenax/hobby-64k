@@ -13,21 +13,39 @@ mnem count-4() noargs;
 
 mnem hello-world() noargs;
      lambda-l 7;
-hiw: ouch2 'He';
-     ouch2 'll';
-     ouch2 'o,';
-     ouch2 ' w';
-     ouch2 'or';
-     ouch2 'ld';
+hiw: curses-add2ch 'He';
+     curses-add2ch 'll';
+     curses-add2ch 'o,';
+     curses-add2ch ' w';
+     curses-add2ch 'or';
+     curses-add2ch 'ld';
      return;
 
-count-4;
+mnem curses-open() noargs;
+     lambda-l 4;
+     curses-initscr;
+     curses-noecho;
+     curses-refresh;
+     return;
+
+mnem curses-close() noargs;
+     lambda-l 2;
+     curses-endwin;
+     return;
+
+curses-open;
+
+curses-move 10, 10;
+
 hello-world;
 
-push-l 11;
-pop-a 100;
+curses-refresh;
 
-print-a-d reg:100;
+curses-waitch;
+
+
+
+curses-close;
 
 
 halt;

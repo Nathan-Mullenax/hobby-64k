@@ -324,32 +324,38 @@ void RETURN_NOTHING( vm &machine, vm::instruction instr )
 void CURSES_INITSCR( vm &machine, vm::instruction instr )
 {
   initscr();
+  ++machine.IP();
 }
 
 void CURSES_CBREAK( vm &machine, vm::instruction instr )
 {
   cbreak();
+  ++machine.IP();
 }
 
 void CURSES_NOECHO( vm &machine, vm::instruction instr )
 {
   noecho();
+  ++machine.IP();
 }
 
 void CURSES_KEYPAD( vm &machine, vm::instruction instr )
 {
   keypad( stdscr, TRUE );
+  ++machine.IP();
 }
 
 void CURSES_ENDWIN( vm &machine, vm::instruction instr )
 {
   endwin();
+  ++machine.IP();
 }
 
 void CURSES_GETCH( vm &machine, vm::instruction instr )
 {
   machine.stack[ machine.SP() ] = getch();
   --machine.SP();
+  ++machine.IP();
 }
 
 void CURSES_WAITCH( vm &machine, vm::instruction instr )
@@ -359,6 +365,42 @@ void CURSES_WAITCH( vm &machine, vm::instruction instr )
     ;
   machine.stack[ machine.SP() ] = c;
   --machine.SP();
+  ++machine.IP();
+}
+
+void CURSES_START_COLOR( vm &machine, vm::instruction instr )
+{
+  start_color();
+  ++machine.IP();
+}
+
+void CURSES_REFRESH( vm &machine, vm::instruction instr )
+{
+  refresh();
+  ++machine.IP();
+}
+
+// move cursor to y,x
+void CURSES_MOVE( vm &machine, vm::instruction instr )
+{
+  vm::conversion c( vm::convert(instr));
+  move( c.c_args.c0, c.c_args.c1 );
+  ++machine.IP();
+}
+
+void CURSES_ADDCH( vm &machine, vm::instruction instr )
+{
+  vm::conversion c(vm::convert(instr));
+  addch( c.c_args.c1 );
+  ++machine.IP();
+}
+
+void CURSES_ADD2CH( vm &machine, vm::instruction instr )
+{
+  vm::conversion c(vm::convert(instr));
+  addch( c.c_args.c0 );
+  addch( c.c_args.c1 );
+  ++machine.IP();
 }
 
 
@@ -399,16 +441,19 @@ create_default_vm( stringstream &s )
   machine += RSH;               s << "mnem rsh(29)         scalar;" "\n";
   machine += LSH;               s << "mnem lsh(30)         scalar;" "\n";
 
-  machine += CURSES_INITSCR;    s << "mnem curses-initscr(31)  noargs;" "\n";
-  machine += CURSES_CBREAK;     s << "mnem curses-cbreak(32)   noargs;" "\n";
-  machine += CURSES_NOECHO;     s << "mnem curses-nocho(33)    noargs;" "\n";
-  machine += CURSES_KEYPAD;     s << "mnem curses-keypad(34)   noargs;" "\n";
-  machine += CURSES_ENDWIN;     s << "mnem curses-endwin(35)   noargs;" "\n";
-  machine += CURSES_GETCH;      s << "mnem curses-getch(36)    noargs;" "\n";
-  machine += CURSES_WAITCH;     s << "mnem curses-waitch(37)   noargs;" "\n";
-  
-  
-  
+  machine += CURSES_INITSCR;     s << "mnem curses-initscr(31)     noargs;" "\n";
+  machine += CURSES_CBREAK;      s << "mnem curses-cbreak(32)      noargs;" "\n";
+  machine += CURSES_NOECHO;      s << "mnem curses-noecho(33)      noargs;" "\n";
+  machine += CURSES_KEYPAD;      s << "mnem curses-keypad(34)      noargs;" "\n";
+  machine += CURSES_ENDWIN;      s << "mnem curses-endwin(35)      noargs;" "\n";
+  machine += CURSES_GETCH;       s << "mnem curses-getch(36)       noargs;" "\n";
+  machine += CURSES_WAITCH;      s << "mnem curses-waitch(37)      noargs;" "\n";
+  machine += CURSES_START_COLOR; s << "mnem curses-start-color(38) noargs;" "\n";
+  machine += CURSES_REFRESH;     s << "mnem curses-refresh(39)     noargs;" "\n";
+  machine += CURSES_MOVE;        s << "mnem curses-move(40)         chars;" "\n";
+  machine += CURSES_ADDCH;       s << "mnem curses-addch(41)        chars;" "\n";
+  machine += CURSES_ADD2CH;      s << "mnem curses-add2ch(42)       chars;" "\n";
+
   return machine;
 }
 

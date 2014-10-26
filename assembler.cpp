@@ -335,14 +335,33 @@ private:
   void
   parse_chars( vm &machine, istream &s )
   {
+   
     token name = lex.next_token(s);
-    string v = expect( lex.next_token(s), S_STRING );
-    if( v.size() != 2 )
-      throw runtime_error("Too many characters in character constant." );
-    char c0 = v[0];
-    char c1 = v[1];
-    expect( lex.next_token(s), ";" );
-    machine << vm::assemble( codes[name.content], c0, c1 );
+
+    token t0 = lex.peek(s,0);
+    
+    if( t0.type == S_STRING )
+      {
+	string v = expect( lex.next_token(s), S_STRING );
+	if( v.size() != 2 )
+	  throw runtime_error("Too many characters in character constant." );
+	char c0 = v[0];
+	char c1 = v[1];
+	expect( lex.next_token(s), ";" );
+	machine << vm::assemble( codes[name.content], c0, c1 );
+      }
+    else if( t0.type==INTEGER )
+      {
+	char c0 = static_cast<char>(intify( expect(lex.next_token(s),INTEGER) ));
+	expect( lex.next_token(s), ",");
+	char c1 = static_cast<char>(intify( expect(lex.next_token(s),INTEGER) ));
+	expect( lex.next_token(s), ";" );
+	machine << vm::assemble( codes[name.content], c0, c1 );
+      }
+    else
+      {
+	throw runtime_error("Invalid form for 'chars'.");
+      }
   }
   
   // parse something parenthesized.
