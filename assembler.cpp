@@ -364,10 +364,6 @@ private:
       }
   }
   
-  // parse something parenthesized.
-  
-
-
   // ('[') xsegment : address (']'), n
   void
   parse_scalar( vm &machine, istream &s )
@@ -425,10 +421,14 @@ private:
   }
 
 public:
-  assembler()
+
+  assembler( )
+  : lex()
   {
     mnem_count = 0;
+    
   }
+
 
   form_type 
   classify( istream &s )
@@ -476,6 +476,7 @@ public:
   void
   assemble( vm &machine, istream &s )
   {
+    
     bool running(true);
 
     while( running )
@@ -545,8 +546,7 @@ out_file_name( string fn )
 int
 main(int argc, char **argv )
 {
-  assembler basic_asm;
-  
+ 
 
   try
     {
@@ -554,11 +554,15 @@ main(int argc, char **argv )
       // create a machine with some basic instructions
       vm machine( create_default_vm(ss) );
       // load default mnemonics
-      basic_asm.assemble(machine, ss );
+      assembler basic_asm;
+      
+      basic_asm.assemble( machine, ss );
+
       // read and assemble source
 
       if( argc > 1 )
 	{
+	  
 	  std::ifstream fin(argv[1], std::ios::binary);
 	  basic_asm.assemble(machine, fin);
 	  machine.IP() = 0;

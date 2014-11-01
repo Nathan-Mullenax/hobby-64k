@@ -9,7 +9,7 @@ h64k-as:	assembler.cpp assembler.h vm.h lexer.h vm-default.h
 h64k-c:	compiler.cpp language.h ast.h vm.h
 	g++ -lncurses -std=c++11 -Wall ./compiler.cpp -O -oh64k-c
 
-example.b64: example.s64
+example.b64: example.s64 h64k-as
 	./h64k-as ./example.s64
 
 clean:

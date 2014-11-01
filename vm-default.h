@@ -33,6 +33,7 @@ void PUSH_ADDRESS ( vm &machine, vm::instruction instr )
 {
   vm::conversion c(vm::convert(instr));
   machine.stack[machine.SP()--] = machine.stack[c.s_arg%(8*1024)];
+  ++machine.IP();
 }
 
 
@@ -403,6 +404,19 @@ void CURSES_ADD2CH( vm &machine, vm::instruction instr )
   ++machine.IP();
 }
 
+// pushes the curses global 'COLORS' onto the stack
+void CURSES_COLORS( vm &machine, vm::instruction instr )
+{
+  machine.stack[machine.SP()--] = COLORS;
+  ++machine.IP();
+}
+
+void CURSES_COLOR_PAIRS( vm &machine, vm::instruction instr )
+{
+  machine.stack[machine.SP()--] = COLOR_PAIRS;
+  ++machine.IP();
+}
+
 
 
 vm
@@ -453,6 +467,8 @@ create_default_vm( stringstream &s )
   machine += CURSES_MOVE;        s << "mnem curses-move(40)         chars;" "\n";
   machine += CURSES_ADDCH;       s << "mnem curses-addch(41)        chars;" "\n";
   machine += CURSES_ADD2CH;      s << "mnem curses-add2ch(42)       chars;" "\n";
+  machine += CURSES_COLORS;      s << "mnem curses-colors(43)      noargs;" "\n";
+  machine += CURSES_COLOR_PAIRS; s << "mnem curses-color-pairs(44) noargs;" "\n";
 
   return machine;
 }

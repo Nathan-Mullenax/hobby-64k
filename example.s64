@@ -34,18 +34,11 @@ mnem curses-close() noargs;
      return;
 
 curses-open;
-
 curses-move 10, 10;
-
 hello-world;
-
 curses-refresh;
-
 curses-waitch;
-
-
-
 curses-close;
 
-
 halt;
+

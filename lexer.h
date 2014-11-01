@@ -52,6 +52,7 @@ class lexer
   int col;
   int offset;
 
+ private:
   // parser's dead ends may need to put tokens back into the lexing stream.
   // it's up to the user to make what is "put back" is the same token
   // that had last been extracted.
@@ -60,7 +61,7 @@ class lexer
   // report that a character has been used
   // updates stream, line, column, and offset
   void
-    consume( istream &s )
+    consume(istream &s  )
   {
     char c(s.get());
     ++offset;
@@ -96,7 +97,7 @@ class lexer
   }
 
   string
-    lex_id( stringstream &w, istream &s )
+    lex_id( istream &s, stringstream &w  )
   {
     char c(s.peek());
     while( isalpha(c) || isdigit(c) || c=='_' || c=='-' )
@@ -109,7 +110,7 @@ class lexer
   }
 
   string
-    lex_qstring( stringstream &w, istream &s )
+    lex_qstring( istream &s, stringstream &w )
   {
     char c(s.peek());
     char toMatch(c);
@@ -135,7 +136,7 @@ class lexer
   }
 
   string
-    lex_number( stringstream &w, istream &s, bool & was_float )
+    lex_number( istream &s, stringstream &w, bool & was_float )
   {
     was_float = false;
     char c(s.peek());
@@ -177,7 +178,7 @@ class lexer
   }
   
   token 
-    extract_next_token( istream & s )
+    extract_next_token( istream &s )
   {
     eat_ws(s); // get rid of leading spaces.
     char c = s.peek();
@@ -194,7 +195,7 @@ class lexer
     else if( isdigit(c) )
       {
 	bool was_float(false);
-	lex_number( word, s, was_float );
+	lex_number( s, word, was_float );
 	t.type = was_float?FLOAT:INTEGER;
       }
     else if( isoperator(c) )
@@ -206,17 +207,17 @@ class lexer
     else if( isalpha(c) )
       {
 	t.type = ID;
-	lex_id( word, s );       
+	lex_id( s, word );       
       }
     else if( c=='"' )
       {
 	t.type = D_STRING;
-	lex_qstring( word, s );
+	lex_qstring( s, word );
       }
     else if( c=='\'' )
       {
 	t.type = S_STRING;
-	lex_qstring( word, s );
+	lex_qstring( s, word );
       }
     else
       {
@@ -248,11 +249,7 @@ class lexer
   {
     q.push_back(t);
   }
-
-  
-
     
-
   void
     look_ahead( istream &s, unsigned int n )
     {
@@ -268,14 +265,14 @@ class lexer
     peek( istream &s, unsigned int where )
   {
     if( q.size() <= where )
-      look_ahead(s, where+1);
+      look_ahead(s,where+1);
 
     return q[where];
   }
     
 
   token
-    next_token( istream &s )
+    next_token( istream &s)
   {
     
     if( q.size() > 0 )
