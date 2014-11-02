@@ -389,6 +389,15 @@ void CURSES_MOVE( vm &machine, vm::instruction instr )
   ++machine.IP();
 }
 
+// same as move with registers instead of tiny ints
+void CURSES_MOVE_R( vm &machine, vm::instruction instr )
+{
+  vm::conversion c( vm::convert(instr) );
+  move( machine.lookup( instr.src, instr.src_mod ), 
+	machine.lookup( instr.dst, instr.dst_mod ) );
+  ++machine.IP();
+}
+
 void CURSES_ADDCH( vm &machine, vm::instruction instr )
 {
   vm::conversion c(vm::convert(instr));
@@ -416,6 +425,7 @@ void CURSES_COLOR_PAIRS( vm &machine, vm::instruction instr )
   machine.stack[machine.SP()--] = COLOR_PAIRS;
   ++machine.IP();
 }
+
 
 
 
@@ -469,6 +479,7 @@ create_default_vm( stringstream &s )
   machine += CURSES_ADD2CH;      s << "mnem curses-add2ch(42)       chars;" "\n";
   machine += CURSES_COLORS;      s << "mnem curses-colors(43)      noargs;" "\n";
   machine += CURSES_COLOR_PAIRS; s << "mnem curses-color-pairs(44) noargs;" "\n";
+  machine += CURSES_MOVE_R;      s << "mnem curses-move-r(45)        regs;" "\n";
 
   return machine;
 }

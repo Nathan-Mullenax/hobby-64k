@@ -19,7 +19,7 @@ using std::deque;
 
 typedef enum
   {
-    ID,OP,INTEGER,FLOAT,D_STRING,S_STRING,END_OF_FILE
+    ID,OP,INTEGER,FLOAT,D_STRING,S_STRING,END_OF_FILE, COMMENT
   } token_type;
 
 string 
@@ -203,6 +203,17 @@ class lexer
 	t.type = OP;
 	word << c;
 	consume(s);
+      }
+    else if( c=='!' )
+      {
+	while( c != '\n' )
+	  {
+	    word.put(c);
+	    consume(s);
+	    c = s.peek();
+	  }
+	t.type = COMMENT;
+	
       }
     else if( isalpha(c) )
       {

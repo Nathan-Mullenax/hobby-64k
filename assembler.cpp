@@ -28,7 +28,7 @@ private:
   typedef enum 
     {
       MNEM, DW, DS, XADDR, REGS, SCALAR, 
-      CHARS, LABEL, SHORT, NOARGS, CTRLD 
+      CHARS, LABEL, SHORT, NOARGS, CTRLD, A_COMMENT
     } form_type;
 
   // maps instruction name to grammatical form.
@@ -96,7 +96,7 @@ private:
     if( tn=="chars" )     return CHARS;
     if( tn=="short" )     return SHORT;
     if( tn=="noargs" )    return NOARGS;
-
+    
     stringstream ss( error_prefix(t) );
     ss << "Expected form type name.";
     throw runtime_error(ss.str());
@@ -461,6 +461,10 @@ public:
       {
 	return CTRLD;
       }
+    else if( t0.type == COMMENT )
+      {
+	return A_COMMENT;
+      }
     else
       {
 	std::stringstream er;
@@ -513,6 +517,9 @@ public:
 	    break;
 	  case SCALAR:
 	    parse_scalar( machine, s );
+	    break;
+	  case A_COMMENT:
+	    lex.next_token(s);
 	    break;
 	  default:
 	    throw runtime_error("I didn't get that.");

@@ -1,15 +1,9 @@
-push-l 3;
-return;
+push-l 3;    ! load address
+return;      ! pop address and branch
 
-ouch2 'xx';
+ouch2 'xx';  ! we're skipping this line
 
-ouch2 '--';
-
-mnem count-4() noargs;
-     lambda-l 3;
-     ouch2 '01';
-     ouch2 '23';
-     return; 
+ouch2 '--';  ! return above jumps here
 
 mnem hello-world() noargs;
      lambda-l 7;
