@@ -50,6 +50,9 @@ private:
   // So, this functor template will capture
   // W 
   typedef function< void(vm &, string, int) > dep_fn;
+
+  // string: the label name; dep_fn: a function that 'patches' lines
+  // of assembler with unresolved labels.
   map<string,vector<dep_fn> > deps;
 
 
@@ -494,7 +497,6 @@ public:
 	  case LABEL:
 	    {
 	      parse_label( machine, s);
-	      
 	    }
 	    break;
 	  case REGS:
